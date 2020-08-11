@@ -1,0 +1,74 @@
+@isTest
+public class HandlerTestClass {
+	
+     @testSetup static void setup() { // TESTING FOR CREATED ACCOUNT ADDRESSES FROM ACCOUNT
+        
+         List<Account> accts = new List<Account>();
+        for(Integer i=0; i < 200; i++) {
+            Account acct = new Account(Name='TestAcct'+i,BillingCity='j',BillingCountry='y',BillingState='j',
+                                       BillingStreet='g',BillingPostalCode='r', ShippingCity='s',
+                                       ShippingCountry='s',ShippingStreet ='e',
+                                       ShippingPostalCode ='j',ShippingState='w');
+            accts.add(acct);
+        }              
+        // Perform Test
+        Test.startTest();
+        insert accts; 
+        Test.stopTest();
+      
+       
+     }
+    @isTest static void testMethod2(){
+        /// more test methods 
+        
+		 List<Account> verifyAccts = [SELECT Id FROM Account];
+        System.assertEquals(200, verifyAccts.size());  
+        Account_Address__c [] TestCheck = [
+                select Id, Account__r.Id,Account_Types__c,Main__c,City__c,Country__c,State_Province__c,Zip_Postal_Code__c,Street__c
+                from Account_Address__c
+                where Account__r.Id in :verifyAccts AND Account_Types__c =:'Billing Address'
+                ];
+                                   
+        System.assertEquals(200, TestCheck.size());  
+        
+       
+         
+         
+         Account_Address__c [] TestCheck2 = [
+                select Id, Account__r.Id,Account_Types__c,Main__c,City__c,Country__c,State_Province__c,Zip_Postal_Code__c,Street__c
+                from Account_Address__c
+                where Account__r.Id in :verifyAccts AND Account_Types__c =:'Shipping Address'
+                ];
+                                   
+        System.assertEquals(200, TestCheck2.size());   
+         
+         }
+		
+    @isTest static void testMethod3(){  
+        Account  acct = [SELECT Id,BillingCity FROM Account WHERE Name='TestAcct0' LIMIT 1];
+        acct.BillingCity='maki';
+        update acct;
+        system.assertEquals('maki', acct.BillingCity);
+        
+		Account_Address__c [] TestCheck3 = [
+                select Id, Account__r.Id,Account_Types__c,Main__c,City__c,Country__c,State_Province__c,Zip_Postal_Code__c,Street__c
+                from Account_Address__c
+                where name= 'TestAcct0' AND Account_Types__c =:'Billing Address'
+                ];
+        system.assertEquals('maki',acct.BillingCity);
+        
+        
+    }
+    
+    @isTest static void testMethod4(){
+         
+      //  Account [] acct2 = [SELECT Id,name,BillingCity,(select id,name,City__c from Account_Addresses__r) FROM Account WHERE Name='TestAcct1' LIMIT 1 ];
+        
+        
+       
+        
+        
+        
+    }
+    
+}
