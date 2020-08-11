@@ -1,0 +1,12 @@
+trigger AccountTriggersforAccAdd on Account (after insert,after update) {
+    if(trigger.isAfter && trigger.isInsert)
+    { 
+     
+          HandlerMethods.CreateNewAccountAddress(trigger.new); //to create child rescord after creating accounts with no field empty
+    }
+    
+    if(trigger.isUpdate && trigger.isAfter && RecursionHandler.runOnce()){
+         HandlerMethods.UpdateAccAddFromAccRecs(trigger.new, trigger.oldMap,trigger.newMap); //to update main child records
+    }
+		
+}
