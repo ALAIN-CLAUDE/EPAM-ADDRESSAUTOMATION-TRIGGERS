@@ -1,0 +1,192 @@
+public with sharing class HandlerMethods {
+    public static void CreateNewAccountAddress(List<Account> accts){
+     
+      List<Account_Address__c> aal = new list<Account_Address__c>();
+       List<Account_Address__c> aab = new list<Account_Address__c>();
+	for(Account a :  accts){
+        
+	if( (a.BillingCity !=null && a.BillingCountry != null && a.BillingState
+	!=null && a.BillingStreet != null && a.BillingPostalCode !=null && a.BillingStreet !=null) ){
+        
+	Account_Address__c acadd = new Account_Address__c();
+	acadd.City__c = a.BillingCity;
+	acadd.Zip_Postal_code__c = a.BillingPostalCode;
+	acadd.Account_Types__c = 'Billing Address'; 
+	acadd.Account__c = a.Id;
+	acadd.Name = a.Name ;
+	acadd.Main__c = true;
+    acadd.Country__c=a.BillingCountry;
+    acadd.Street__c=a.BillingStreet;
+        acadd.State_Province__c=a.BillingState;
+	aal.add(acadd);
+	}
+      
+ 
+    }
+insert aal;
+    for(Account b :  accts){
+    if( (b.ShippingCity !=null && b.ShippingCountry != null && b.ShippingState
+	!=null && b.ShippingStreet != null && b.ShippingPostalCode !=null && b.ShippingState !=null) ){
+        
+	Account_Address__c acadd = new Account_Address__c();
+	acadd.City__c = b.BillingCity;
+	acadd.Zip_Postal_code__c = b.BillingPostalCode;
+	acadd.Account_Types__c = 'Shipping Address';
+	acadd.Account__c = b.Id;
+	acadd.Name = b.Name ;
+	acadd.Main__c = true;
+    acadd.Country__c=b.BillingCountry;
+    acadd.Street__c=b.BillingStreet;
+        acadd.State_Province__c=b.BillingState;
+	aab.add(acadd);
+	}
+      
+ 
+    }
+insert aab;
+    }
+    
+    ////update Account Address from parent accounts
+    
+    public static void UpdateAccAddFromAccRecs(list<account> aaLists,  map<id,account> oldAccs,map<id,account> newAccs){
+        
+        
+        	
+    
+    Set<Id> accountIds = new Set<Id>();
+    
+    
+    for (Account a : aaLists) {
+        
+      
+        
+        Account old = oldAccs.get(a.Id);
+              
+          
+        if (a.BillingCity != old.BillingCity  || a.BillingCountry != old.BillingCountry ||
+           a.BillingPostalCode != old.BillingPostalCode ||
+           a.BillingState != old.BillingState || a.BillingStreet != old.BillingStreet ||
+           a.ShippingCity != old.ShippingCity || a.ShippingCountry != old.ShippingCountry ||
+           a.ShippingState != old.ShippingState || a.ShippingStreet != old.ShippingStreet) { //YOU CAN ADD MORE != FOR OTHER FIELDS
+            accountIds.add(a.Id);
+        }
+    }
+    if (accountIds.size() > 0) {
+        Account_Address__c [] updates = [
+                select Id, Account__r.Id,Account_Types__c,Main__c,City__c,Country__c,State_Province__c,Zip_Postal_Code__c,Street__c
+                from Account_Address__c
+                where Account__r.Id in :accountIds
+                ];
+        for (Account_Address__c c : updates) {
+            Account b = newAccs.get(c.Account__r.id);
+            if(c.Main__c==true && c.Account_Types__c=='Billing Address'){
+                 c.Account_Types__c='Billing Address';
+                
+            c.City__c = b.BillingCity;
+          	c.Country__c= b.BillingCountry;
+            c.State_Province__c= b.BillingState;
+            c.Zip_Postal_Code__c= b.BillingPostalCode;
+            c.Street__c= b.BillingStreet;
+           }
+        //update updates;
+            else if(c.Main__c==true && c.Account_Types__c =='Shipping Address'){
+                
+                c.Account_Types__c ='Shipping Address';
+                 c.City__c= b.ShippingCity;
+            c.Country__c= b.ShippingCountry;
+            c.State_Province__c= b.ShippingState;
+                c.Zip_Postal_Code__c=b.ShippingPostalCode;
+            c.Street__c= b.ShippingStreet;
+
+            }
+        }
+         update updates;
+    }
+}
+    
+    
+    
+    
+
+   ///UPDATE ACCOUNT RECORDS FROM CHILD ACC ADDRESS 
+	public static void CreateUpdateAccsFromAccAddress(List<Account_Address__c > accaddr) {
+   Map<ID,Account> Acct = new Map<ID,Account>();
+	list<id> listids = new List<id>();
+    
+	for (Account_Address__c acctadd : accaddr){listids.add(acctadd.account__c);}
+	Acct = new Map<id, account>([SELECT id,Name,(SELECT Main__c FROM
+	Account_Addresses__r)
+	FROM Account Where id IN :listids]);
+	
+    for(Account_Address__c accountad : accaddr){
+        
+	Account myacct = acct.get(accountad.Account__c);
+        
+	if(accountad.Main__c == true && accountad.Account_Types__c == 'billing address'){
+	myacct.BillingPostalCode = accountad.Zip_Postal_code__c ;
+	myacct.BillingStreet = accountad.Street__c;
+	myacct.Billingcity = accountad.City__c;
+        myacct.BillingState=accountad.State_Province__c;
+        myacct.BillingCountry=accountad.Country__c;
+}
+        else if(accountad.Main__c == true && accountad.Account_Types__c == 'shipping address'){
+            myacct.ShippingPostalCode = accountad.Zip_Postal_code__c ;
+			myacct.ShippingStreet = accountad.Street__c;
+			myacct.Shippingcity = accountad.City__c;
+            myacct.ShippingState=accountad.State_Province__c;
+            myacct.ShippingCountry=accountad.Country__c;
+
+        }
+}
+    	update acct.values();
+}
+
+    ////This Method will uncheck all other check boxes except 1 for each type
+    
+    public static void UncheckRecords(list<Account_Address__c> AccAddRecs ){
+        	
+		 List<Account_Address__c> billingList = new List<Account_Address__c>(); //billingList
+    	 List<Account_Address__c> shippingList = new List<Account_Address__c>(); //shippingList
+   		 Set<Id> accountIdforShip = new Set<Id>();
+         Set<Id> accountIdForBill = new Set<Id>();
+		Set<Id> AccountAddressesIds = new Set<Id>();//billingSetIds
+        Set<Id> AccountAddressesIds2 = new Set<Id>();//ShippingSetIds
+    
+    for(Account_Address__c d : AccAddRecs){
+        
+        if(d.Main__c == true && d.Account_Types__c=='Billing Address'){ 
+            
+           accountIdForBill.add(d.Account__c);
+			AccountAddressesIds.add(d.Id);
+        }
+        if(d.Main__c == true && d.Account_Types__c=='Shipping Address'){
+             accountIdforShip.add(d.Account__c);
+			AccountAddressesIds2.add(d.Id);
+        }
+    }
+   billingList = [SELECT id,Main__c,Account_Types__c FROM Account_Address__c
+	      WHERE Main__c =true  AND Account__c IN: accountIdForBill AND Id NOT IN:AccountAddressesIds AND Account_Types__c!='Shipping Address' ];
+    shippingList = [SELECT id,Main__c,Account_Types__c FROM Account_Address__c
+	      WHERE Main__c =true AND Account__c IN: accountIdforShip AND Id NOT IN:AccountAddressesIds2 AND Account_Types__c!='Billing Address'];
+  
+  
+    for(Account_Address__c d:billingList){ 
+        if(d.Main__c==true ){
+            d.Main__c=false;
+        }
+                	
+        }
+      
+        for(Account_Address__c c :ShippingList){
+            if(c.Main__c==true){
+            c.Main__c=false;
+        }
+        }
+     
+            
+       update billingList;
+        update ShippingList;
+       
+     
+    }
+}
