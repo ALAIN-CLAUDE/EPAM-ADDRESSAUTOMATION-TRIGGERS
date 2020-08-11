@@ -1,0 +1,15 @@
+trigger AccountAddTriggers on Account_Address__c (before insert, before update,after insert,after update) {
+    //i can add after undelete events as well later
+ 
+   if(trigger.isBefore && trigger.isInSert ){ 
+       HandlerMethods.UncheckRecords(trigger.new );
+   }
+    
+    
+     if( trigger.isAfter && trigger.isUpdate && RecursionHandler.runOnce()){ 
+                                                                   
+       HandlerMethods.UncheckRecords(trigger.new);
+       }
+    
+    
+}
