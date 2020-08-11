@@ -1,0 +1,17 @@
+public class RecursionHandler {
+    //CLASS TO STOP ANY RECURSIONS
+    
+	public static map<String, Set<Id>> recordIdMap = new map<String, Set<Id>>();
+    public static Boolean isValid = true;
+    public static Boolean IsNotRecursive = true;
+    public static Boolean runOnce(){
+        if(isValid){
+            isValid = false;
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+}
